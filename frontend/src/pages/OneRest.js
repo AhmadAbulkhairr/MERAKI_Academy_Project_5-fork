@@ -16,7 +16,7 @@ import {
   IconButton,
   Badge,
 } from "@mui/material";
-
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 
@@ -57,7 +57,6 @@ const RestaurantDetails = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCartItems(response.data.cart);
-console.log(response.data.cart);
       if (response.data.cart.length > 0) {
         setCartRestaurantId(response.data.cart[0].restaurant_id);
       }
@@ -73,7 +72,6 @@ console.log(response.data.cart);
     }
 
     if (cartRestaurantId && cartRestaurantId != item.restaurant_id) {
-      console.log(item);
       setNewItem(item);
       setWarningModal(true);
     } else {
@@ -110,6 +108,15 @@ console.log(response.data.cart);
   const handleConfirmReplace = async () => {
     await handleAddItem(newItem);
     setWarningModal(false);
+  };
+
+  const handleOnDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const item = restaurant.menu_items[result.source.index];
+    if (result.destination.droppableId === "cart") {
+      addItemToCart(item);
+    }
   };
 
   if (loading) return <CircularProgress />;
@@ -174,60 +181,108 @@ console.log(response.data.cart);
       <Typography variant="h5" gutterBottom>
         Menu
       </Typography>
-      {Object.keys(restaurant.menu_items).map((category) => (
-        <Box key={category} sx={{ marginBottom: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            {category}
-          </Typography>
-          <Grid container spacing={2}>
-            {restaurant.menu_items[category].map((item) => (
-              <Grid item xs={12} sm={6} md={4} key={item.id}>
-                <Card 
-                 sx={{
-                  minWidth: 300,
-                  borderRadius: 2,
-                  boxShadow: 3,
-                  transition: "transform 0.3s",
-                  "&:hover": { transform: "scale(1.05)" },
-                }}
-                >
-                  <CardMedia
-                    component="img"
-                    height="140"
-                    image={item.image_url || "default_image_url.jpg"}
-                    alt={item.name}
-                  />
-                  <CardContent>
-                    <Typography gutterBottom variant="h6" component="div">
-                      {item.name}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      {item.description}
-                    </Typography>
-                    <Typography variant="body1" color="textPrimary">
-                      ${item.price}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color={item.available ? "green" : "red"}
-                    >
-                      {item.available ? "Available" : "Not Available"}
-                    </Typography>
-                    {item.available && (
-                      <IconButton
-                        color="primary"
-                        onClick={() => addItemToCart(item)}
+      <DragDropContext onDragEnd={handleOnDragEnd}>
+        <Droppable droppableId="menuItems">
+          {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef}>
+              {Object.keys(restaurant.menu_items).map((category, categoryIndex) => (
+                <Box key={category} sx={{ marginBottom: 4 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {category}
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {restaurant.menu_items[category].map((item, index) => (
+                      <Draggable
+                        key={item.id}
+                        draggableId={item.id.toString()}
+                        index={index}
                       >
-                        <AddShoppingCartIcon />
-                      </IconButton>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-      ))}
+                        {(provided) => (
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            md={4}
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                          >
+                            <Card
+                              sx={{
+                                minWidth: 300,
+                                borderRadius: 2,
+                                boxShadow: 3,
+                                transition: "transform 0.3s",
+                                "&:hover": { transform: "scale(1.05)" },
+                              }}
+                            >
+                              <CardMedia
+                                component="img"
+                                height="140"
+                                image={item.image_url || "default_image_url.jpg"}
+                                alt={item.name}
+                              />
+                              <CardContent>
+                                <Typography
+                                  gutterBottom
+                                  variant="h6"
+                                  component="div"
+                                >
+                                  {item.name}
+                                </Typography>
+                                <Typography variant="body2" color="textSecondary">
+                                  {item.description}
+                                </Typography>
+                                <Typography variant="body1" color="textPrimary">
+                                  ${item.price}
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  color={item.available ? "green" : "red"}
+                                >
+                                  {item.available
+                                    ? "Available"
+                                    : "Not Available"}
+                                </Typography>
+                                {item.available && (
+                                  <IconButton
+                                    color="primary"
+                                    onClick={() => addItemToCart(item)}
+                                  >
+                                    <AddShoppingCartIcon />
+                                  </IconButton>
+                                )}
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        )}
+                      </Draggable>
+                    ))}
+                  </Grid>
+                </Box>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+        <Droppable droppableId="cart">
+          {(provided) => (
+            <Box
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              sx={{
+                border: "2px dashed #ccc",
+                padding: 2,
+                marginTop: 4,
+                textAlign: "center",
+              }}
+            >
+              <Typography variant="h6">Drop Here to Add to Cart</Typography>
+              {provided.placeholder}
+            </Box>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       <Modal open={warningModal} onClose={() => setWarningModal(false)}>
         <Box
@@ -311,4 +366,5 @@ console.log(response.data.cart);
     </Container>
   );
 };
+
 export default RestaurantDetails;

@@ -148,9 +148,9 @@ CREATE TABLE cart_items (
 CREATE TABLE reviews (
     id SERIAL NOT NULL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        order_id INT REFERENCES orders(id) ON DELETE CASCADE ON UPDATE CASCADE,
     restaurant_id INT REFERENCES restaurants(id) ON DELETE CASCADE ON UPDATE CASCADE,
     rating INT CHECK (rating >= 1 AND rating <= 5),
-    comment TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at BOOLEAN DEFAULT FALSE
 )
