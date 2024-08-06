@@ -4,8 +4,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { setLogout } from '../../redux/auth';
 import TemporaryDrawer from "../../pages/Admin/SideBar";
-import RestaurantIcon from '@mui/icons-material/Restaurant'; 
+import RestaurantIcon from '@mui/icons-material/Restaurant';
+import FastfoodIcon from '@mui/icons-material/Fastfood';
+import LocalDiningIcon from '@mui/icons-material/LocalDining'; 
+
 import './header.css'
+
 const Header = () => {
   const token = useSelector((state) => state.auth.token);
   const role = useSelector((state) => state.auth.role);
@@ -22,11 +26,13 @@ const Header = () => {
       <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton component={Link} to="/" sx={{ color: 'white', marginRight: 2 }}>
-            <RestaurantIcon sx={{ fontSize: 40 }} /> 
+            <RestaurantIcon sx={{ fontSize: 40 }} />
           </IconButton>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'white', fontSize: '1.5rem' }} className="feedme-logo">
-            <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }} className="feedme-link">
+          <Typography variant="h6" className="feedme-logo">
+            <Link to="/" className="feedme-link">
+              <FastfoodIcon className="feedme-icon" />
               FeedMe
+              <LocalDiningIcon className="feedme-icon" />
             </Link>
           </Typography>
         </Box>
